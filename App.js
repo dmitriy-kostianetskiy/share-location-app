@@ -16,20 +16,33 @@ export default class App extends React.Component {
     loading: null
   }
 
+  async loadLocations() {
+    await loading(this, async () => {
+      const locations = await getLocations();
+
+      this.setState({
+        locations
+      });
+    });
+  }
+
+  isUserNameValid() {
+    return this.state.userName && this.state.userName.trim();
+  }
+
   onCheckInHandler = async () => {
-    if (!this.state.userName || this.state.loading) {
+    if (!this.isUserNameValid() || this.state.loading) {
       return;
     }
 
     await loading(this, async () => {
-      const location = await saveLocation(this.state.currentLocation, this.state.userName);
+      const location = await saveLocation(this.state.currentLocation, this.state.userName.trim());
 
       this.setState({
         locations: [
           ...this.state.locations,
           location
         ],
-        currentLocation: location,
         error: null
       });
     })
@@ -54,16 +67,6 @@ export default class App extends React.Component {
     })
   }
 
-  async loadLocations() {
-    await loading(this, async () => {
-      const locations = await getLocations();
-
-      this.setState({
-        locations
-      });
-    });
-  }
-
   async componentDidMount() {
     await this.loadLocations();
   }
@@ -72,8 +75,8 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <CheckIn
-          disabled={this.state.loading}
-          onCheckIn={this.onCheckInHandler} 
+          disabled={this.state.loading || !this.isUserNameValid()}
+          onCheckIn={this.onCheckInHandler}
           onChangeName={this.onChangeName}
         />
         { 
